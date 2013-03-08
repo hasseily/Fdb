@@ -2476,34 +2476,37 @@ XS(_wrap_future_get_key) {
     int *arg3 = (int *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    void *argp2 = 0 ;
-    int res2 = 0 ;
-    void *argp3 = 0 ;
-    int res3 = 0 ;
+    uint8_t *temp2 ;
+    int temp3 ;
     int argvi = 0;
     fdb_error_t result;
     dXSARGS;
     
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: future_get_key(f,out_key,out_key_length);");
+    {
+      arg2 = &temp2;
+    }
+    {
+      arg3 = &temp3;
+    }
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: future_get_key(f);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_future, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "future_get_key" "', argument " "1"" of type '" "FDBFuture *""'"); 
     }
     arg1 = (FDBFuture *)(argp1);
-    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_p_uint8_t, 0 |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "future_get_key" "', argument " "2"" of type '" "uint8_t const **""'"); 
-    }
-    arg2 = (uint8_t **)(argp2);
-    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_int, 0 |  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "future_get_key" "', argument " "3"" of type '" "int *""'"); 
-    }
-    arg3 = (int *)(argp3);
     result = (fdb_error_t)fdb_future_get_key(arg1,(uint8_t const **)arg2,arg3);
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((int)(result)); argvi++ ;
+    {
+      if (argvi >= items) {
+        EXTEND(sp,1);
+      }
+      SV *sv = newSVpv((char *)*arg2, *arg3);
+      sv_2mortal(sv);
+      ST(argvi) = sv;
+      argvi++;
+    }
     
     
     
@@ -2613,41 +2616,50 @@ XS(_wrap_future_get_value) {
     int *arg4 = (int *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    void *argp2 = 0 ;
-    int res2 = 0 ;
-    void *argp3 = 0 ;
-    int res3 = 0 ;
-    void *argp4 = 0 ;
-    int res4 = 0 ;
+    fdb_bool_t temp2 ;
+    uint8_t *temp3 ;
+    int temp4 ;
     int argvi = 0;
     fdb_error_t result;
     dXSARGS;
     
-    if ((items < 4) || (items > 4)) {
-      SWIG_croak("Usage: future_get_value(f,out_present,out_value,out_value_length);");
+    {
+      arg2 = &temp2;
+    }
+    {
+      arg3 = &temp3;
+    }
+    {
+      arg4 = &temp4;
+    }
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: future_get_value(f);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_future, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "future_get_value" "', argument " "1"" of type '" "FDBFuture *""'"); 
     }
     arg1 = (FDBFuture *)(argp1);
-    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_int, 0 |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "future_get_value" "', argument " "2"" of type '" "fdb_bool_t *""'"); 
-    }
-    arg2 = (fdb_bool_t *)(argp2);
-    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_p_uint8_t, 0 |  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "future_get_value" "', argument " "3"" of type '" "uint8_t const **""'"); 
-    }
-    arg3 = (uint8_t **)(argp3);
-    res4 = SWIG_ConvertPtr(ST(3), &argp4,SWIGTYPE_p_int, 0 |  0 );
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "future_get_value" "', argument " "4"" of type '" "int *""'"); 
-    }
-    arg4 = (int *)(argp4);
     result = (fdb_error_t)fdb_future_get_value(arg1,arg2,(uint8_t const **)arg3,arg4);
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((int)(result)); argvi++ ;
+    {
+      if (argvi >= items) {
+        EXTEND(sp,1);
+      }
+      SV *sv = newSViv(temp2);
+      sv_2mortal(sv);
+      ST(argvi) = sv;
+      argvi++;
+    }
+    {
+      if (argvi >= items) {
+        EXTEND(sp,1);
+      }
+      SV *sv = newSVpv((char *)*arg3, *arg4);
+      sv_2mortal(sv);
+      ST(argvi) = sv;
+      argvi++;
+    }
     
     
     
@@ -2671,41 +2683,59 @@ XS(_wrap_future_get_keyvalue_array) {
     fdb_bool_t *arg4 = (fdb_bool_t *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    void *argp2 = 0 ;
-    int res2 = 0 ;
-    void *argp3 = 0 ;
-    int res3 = 0 ;
-    void *argp4 = 0 ;
-    int res4 = 0 ;
+    FDBKeyValue *temp2 ;
+    int temp3 ;
+    fdb_bool_t temp4 ;
     int argvi = 0;
     fdb_error_t result;
     dXSARGS;
     
-    if ((items < 4) || (items > 4)) {
-      SWIG_croak("Usage: future_get_keyvalue_array(f,out_kv,out_count,out_more);");
+    {
+      arg2 = &temp2;
+    }
+    {
+      arg3 = &temp3;
+    }
+    {
+      arg4 = &temp4;
+    }
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: future_get_keyvalue_array(f);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_future, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "future_get_keyvalue_array" "', argument " "1"" of type '" "FDBFuture *""'"); 
     }
     arg1 = (FDBFuture *)(argp1);
-    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_p_keyvalue, 0 |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "future_get_keyvalue_array" "', argument " "2"" of type '" "FDBKeyValue const **""'"); 
-    }
-    arg2 = (FDBKeyValue **)(argp2);
-    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_int, 0 |  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "future_get_keyvalue_array" "', argument " "3"" of type '" "int *""'"); 
-    }
-    arg3 = (int *)(argp3);
-    res4 = SWIG_ConvertPtr(ST(3), &argp4,SWIGTYPE_p_int, 0 |  0 );
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "future_get_keyvalue_array" "', argument " "4"" of type '" "fdb_bool_t *""'"); 
-    }
-    arg4 = (fdb_bool_t *)(argp4);
     result = (fdb_error_t)fdb_future_get_keyvalue_array(arg1,(struct keyvalue const **)arg2,arg3,arg4);
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((int)(result)); argvi++ ;
+    {
+      // create a perl AV (array) and map all the FDBKeyValues into HVs (hashes) within the AV
+      // the result is an arrayref of hashrefs
+      AV *av = newAV();
+      HV *hv;
+      FDBKeyValue *kv;
+      for(int i=0;i<*arg3;i++) {
+        kv = arg2[i];
+        hv = newHV();
+        hv_store(hv, kv->key, kv->key_length, newSVpv(kv->value, kv->value_length), 0);
+        av_push(av, newRV_inc((SV *)hv));
+      }
+      if (argvi >= items) {
+        EXTEND(sp,1);
+      }
+      ST(argvi) = newRV_inc((SV *)av);
+      argvi++;
+    }
+    {
+      if (argvi >= items) {
+        EXTEND(sp,1);
+      }
+      SV *sv = newSViv(temp4);
+      sv_2mortal(sv);
+      ST(argvi) = sv;
+      argvi++;
+    }
     
     
     
