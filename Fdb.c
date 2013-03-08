@@ -2393,27 +2393,33 @@ XS(_wrap_future_get_error) {
     char **arg2 = (char **) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    void *argp2 = 0 ;
-    int res2 = 0 ;
+    char *temp2 ;
     int argvi = 0;
     fdb_error_t result;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: future_get_error(f,out_description);");
+    {
+      arg2 = &temp2;
+    }
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: future_get_error(f);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_future, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "future_get_error" "', argument " "1"" of type '" "FDBFuture *""'"); 
     }
     arg1 = (FDBFuture *)(argp1);
-    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_p_char, 0 |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "future_get_error" "', argument " "2"" of type '" "char const **""'"); 
-    }
-    arg2 = (char **)(argp2);
     result = (fdb_error_t)fdb_future_get_error(arg1,(char const **)arg2);
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((int)(result)); argvi++ ;
+    {
+      if (argvi >= items) {
+        EXTEND(sp,1);
+      }
+      SV *sv = sv_newmortal();
+      SWIG_MakePtr(sv, temp2, SWIGTYPE_p_char, 0);
+      ST(argvi) = sv;
+      argvi++;
+    }
     
     
     XSRETURN(argvi);
@@ -2926,27 +2932,33 @@ XS(_wrap_database_create_transaction) {
     FDBTransaction **arg2 = (FDBTransaction **) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    void *argp2 = 0 ;
-    int res2 = 0 ;
+    FDBTransaction *temp2 ;
     int argvi = 0;
     fdb_error_t result;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: database_create_transaction(d,out_transaction);");
+    {
+      arg2 = &temp2;
+    }
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: database_create_transaction(d);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_database, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "database_create_transaction" "', argument " "1"" of type '" "FDBDatabase *""'"); 
     }
     arg1 = (FDBDatabase *)(argp1);
-    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_p_transaction, 0 |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "database_create_transaction" "', argument " "2"" of type '" "FDBTransaction **""'"); 
-    }
-    arg2 = (FDBTransaction **)(argp2);
     result = (fdb_error_t)fdb_database_create_transaction(arg1,arg2);
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((int)(result)); argvi++ ;
+    {
+      if (argvi >= items) {
+        EXTEND(sp,1);
+      }
+      SV *sv = sv_newmortal();
+      SWIG_MakePtr(sv, temp2, SWIGTYPE_p_transaction, 0);
+      ST(argvi) = sv;
+      argvi++;
+    }
     
     
     XSRETURN(argvi);
