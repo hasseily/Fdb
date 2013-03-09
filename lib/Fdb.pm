@@ -65,9 +65,13 @@ the method.
         ($res, $db_handle) = Fdb::future_get_database($db_f);
         Fdb::future_destroy($db_f);
 
+        ...
+
         Fdb::database_destroy($db_handle);
         Fdb::cluster_destroy($cluster_handle);
         Fdb::stop_network();
+
+Please see B<t/01_connect.t> for a complete example with transactions and getting/setting keys
 
 =head1 EXPORT
 
