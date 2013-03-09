@@ -11,6 +11,9 @@ my $tct = 0; # test count
 
 use Fdb;
 
+my $test_key = 'TestKey01';
+my $test_val = 'TestValue';
+
 #diag( "Testing basic Fdb connectivity" );
 is(Fdb::select_api_version(Fdb::FDB_API_VERSION()), 0, 'Set API version');
 $tct++;
@@ -51,7 +54,7 @@ my $committed = 0;
 is($res, 0, 'Create DB transaction');
 $tct++;
 while ($committed == 0) {
-  Fdb::transaction_set($trans, "TestKey", "TestValue");
+  Fdb::transaction_set($trans, $test_key, $test_val);
   my $commit_f = Fdb::transaction_commit($trans);
   is (Fdb::future_block_until_ready($commit_f), 0, 'Transaction commit ready');
   $tct++;
@@ -70,27 +73,43 @@ while ($committed == 0) {
 Fdb::transaction_reset($trans);
 
 #diag( "Testing read transaction" );
-my $tr_f = Fdb::transaction_get($trans, "TestKey", 0);
+my $tr_f = Fdb::transaction_get($trans, $test_key, 0);
 Fdb::future_block_until_ready($tr_f);
 if (Fdb::future_is_error($tr_f)) {
   my ($err, $err_desc) = Fdb::future_get_error($tr_f);
   my $err_f = Fdb::transaction_on_error($trans, $err);
   if (Fdb::future_block_until_ready($err_f) != 0) {
-    fail('Transaction read commit');
+    fail('transaction_on_error');
   }
   Fdb::future_destroy($err_f);
 }
 my ($out_val, $bool);
 ($res, $bool, $out_val) = Fdb::future_get_value($tr_f);
+Fdb::future_destroy($tr_f);
 is ($res, 0);
 $tct++;
-is ($out_val, "TestValue");
+is ($out_val, $test_val, "future_get_value");
 $tct++;
+Fdb::transaction_reset($trans);
 
-Fdb::transaction_destroy($trans);
-Fdb::future_destroy($tr_f);
+#diag( "Testing read range transaction" );
+$tr_f = Fdb::transaction_get_range($trans, $test_key, 0, 1, $test_key, 1, 1, 0, 0, Fdb::FDB_STREAMING_MODE_SERIAL(), 1, 0, 0);
+Fdb::future_block_until_ready($tr_f);
+if (Fdb::future_is_error($tr_f)) {
+  fail("transaction_get_range");
+}
+my $ary_ref;
+($res, $ary_ref) = Fdb::future_get_keyvalue_array($tr_f);
+is ($res, 0);
+$tct++;
+my $expected_ref = [ { $test_key => $test_val } ];
+is_deeply ($ary_ref, $expected_ref, "future_get_keyvalue_array");
+$tct++;
+Fdb::transaction_reset($trans);
+
 
 # cleanup
+Fdb::transaction_destroy($trans);
 Fdb::database_destroy($db_handle);
 Fdb::cluster_destroy($cluster_handle);
 is(Fdb::stop_network(), 0, 'Network stopped');

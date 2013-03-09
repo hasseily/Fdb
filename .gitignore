@@ -2,3 +2,9 @@
 *.old
 blib
 blib/*
+pm_to_blib
+*.o
+*.bs
+*.xml
+Makefile
+Makefile.old

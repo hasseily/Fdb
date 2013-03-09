@@ -2714,11 +2714,11 @@ XS(_wrap_future_get_keyvalue_array) {
       // the result is an arrayref of hashrefs
       AV *av = newAV();
       HV *hv;
-      FDBKeyValue *kv;
+      FDBKeyValue kv;
       for(int i=0;i<*arg3;i++) {
-        kv = arg2[i];
+        kv = temp2[i];
         hv = newHV();
-        hv_store(hv, kv->key, kv->key_length, newSVpv(kv->value, kv->value_length), 0);
+        hv_store(hv, kv.key, kv.key_length, newSVpv(kv.value, kv.value_length), 0);
         av_push(av, newRV_inc((SV *)hv));
       }
       if (argvi >= items) {
