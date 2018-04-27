@@ -6,7 +6,7 @@ use threads;
 use Test::More;
 use Data::Dumper;
 
-#plan tests => 11;
+plan tests => 17;
 my $tct = 0; # test count
 
 use Fdb;
@@ -58,8 +58,9 @@ while ($committed == 0) {
   my $commit_f = Fdb::transaction_commit($trans);
   is (Fdb::future_block_until_ready($commit_f), 0, 'Transaction commit ready');
   $tct++;
-  if (Fdb::future_is_error($commit_f)) {
-    my ($err, $err_desc) = Fdb::future_get_error($commit_f);
+# TODO upgrade the code
+  my $err = Fdb::future_get_error($commit_f);
+  if ($err != 0) {
     my $err_f = Fdb::transaction_on_error($trans, $err);
     if (Fdb::future_block_until_ready($err_f) != 0) {
       fail('Transaction write commit');
@@ -75,8 +76,8 @@ Fdb::transaction_reset($trans);
 #diag( "Testing read transaction" );
 my $tr_f = Fdb::transaction_get($trans, $test_key, 0);
 Fdb::future_block_until_ready($tr_f);
-if (Fdb::future_is_error($tr_f)) {
-  my ($err, $err_desc) = Fdb::future_get_error($tr_f);
+my $err = Fdb::future_get_error($tr_f);
+if ($err != 0) {
   my $err_f = Fdb::transaction_on_error($trans, $err);
   if (Fdb::future_block_until_ready($err_f) != 0) {
     fail('transaction_on_error');
@@ -95,7 +96,7 @@ Fdb::transaction_reset($trans);
 #diag( "Testing read range transaction" );
 $tr_f = Fdb::transaction_get_range($trans, $test_key, 0, 1, $test_key, 1, 1, 0, 0, Fdb::FDB_STREAMING_MODE_SERIAL(), 1, 0, 0);
 Fdb::future_block_until_ready($tr_f);
-if (Fdb::future_is_error($tr_f)) {
+if (Fdb::future_get_error($tr_f) != 0) {
   fail("transaction_get_range");
 }
 my $ary_ref;

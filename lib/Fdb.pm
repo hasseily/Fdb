@@ -17,11 +17,11 @@ Fdb - FoundationDB Perl Interface
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 =head1 SYNOPSIS
@@ -31,14 +31,16 @@ read the documentation on the FoundationDB website.
 
 The Perl interface differs from the C one in 2 cases:
 
-=li
+=over
 
-* where C methods expect tuples of C<(string, string_length)>, in Perl disregard
+=item *
+
+where C methods expect tuples of C<(string, string_length)>, in Perl disregard
 the need for string_length
 
-=li
+=item *
 
-* where C methods expect an output parameter (e.g. C<FDBCluster **out_cluster>),
+where C methods expect an output parameter (e.g. C<FDBCluster **out_cluster>),
 in Perl you instead do not pass it in but get it as a 2nd item in the output of
 the method.
 
@@ -51,7 +53,8 @@ the method.
         my $cluster_f = Fdb::create_cluster(undef);
         Fdb::future_block_until_ready($cluster_f);
         my $err;
-        if (Fdb::future_is_error($cluster_f)) {
+        my $err = Fdb::future__get_error($cluster_f);
+        if ($err != 0) {
           Fdb::future_get_error($cluster_f, $err);
           warn $err;
         }
@@ -137,7 +140,7 @@ L<http://search.cpan.org/dist/Fdb/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2013 Henri Asseily.
+Copyright 2013-2018 Henri Asseily.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a
@@ -195,6 +198,7 @@ sub select_api_version {
 
 # ---------- BASE METHODS -------------
 
+package Fdb;
 
 sub TIEHASH {
     my ($classname,$obj) = @_;
@@ -230,13 +234,16 @@ sub this {
 package Fdb;
 
 *get_error = *Fdbc::get_error;
+*error_predicate = *Fdbc::error_predicate;
 *network_set_option = *Fdbc::network_set_option;
 *setup_network = *Fdbc::setup_network;
 *stop_network = *Fdbc::stop_network;
+*add_network_thread_completion_hook = *Fdbc::add_network_thread_completion_hook;
+*future_cancel = *Fdbc::future_cancel;
+*future_release_memory = *Fdbc::future_release_memory;
 *future_destroy = *Fdbc::future_destroy;
 *future_block_until_ready = *Fdbc::future_block_until_ready;
 *future_is_ready = *Fdbc::future_is_ready;
-*future_is_error = *Fdbc::future_is_error;
 *future_set_callback = *Fdbc::future_set_callback;
 *future_get_error = *Fdbc::future_get_error;
 *future_get_version = *Fdbc::future_get_version;
@@ -245,6 +252,7 @@ package Fdb;
 *future_get_database = *Fdbc::future_get_database;
 *future_get_value = *Fdbc::future_get_value;
 *future_get_keyvalue_array = *Fdbc::future_get_keyvalue_array;
+*future_get_string_array = *Fdbc::future_get_string_array;
 *create_cluster = *Fdbc::create_cluster;
 *cluster_destroy = *Fdbc::cluster_destroy;
 *cluster_set_option = *Fdbc::cluster_set_option;
@@ -253,21 +261,28 @@ package Fdb;
 *database_set_option = *Fdbc::database_set_option;
 *database_create_transaction = *Fdbc::database_create_transaction;
 *transaction_destroy = *Fdbc::transaction_destroy;
+*transaction_cancel = *Fdbc::transaction_cancel;
 *transaction_set_option = *Fdbc::transaction_set_option;
 *transaction_set_read_version = *Fdbc::transaction_set_read_version;
 *transaction_get_read_version = *Fdbc::transaction_get_read_version;
 *transaction_get = *Fdbc::transaction_get;
 *transaction_get_key = *Fdbc::transaction_get_key;
+*transaction_get_addresses_for_key = *Fdbc::transaction_get_addresses_for_key;
 *transaction_get_range = *Fdbc::transaction_get_range;
 *transaction_set = *Fdbc::transaction_set;
+*transaction_atomic_op = *Fdbc::transaction_atomic_op;
 *transaction_clear = *Fdbc::transaction_clear;
 *transaction_clear_range = *Fdbc::transaction_clear_range;
+*transaction_watch = *Fdbc::transaction_watch;
 *transaction_commit = *Fdbc::transaction_commit;
 *transaction_get_committed_version = *Fdbc::transaction_get_committed_version;
+*transaction_get_versionstamp = *Fdbc::transaction_get_versionstamp;
 *transaction_on_error = *Fdbc::transaction_on_error;
 *transaction_reset = *Fdbc::transaction_reset;
+*transaction_add_conflict_range = *Fdbc::transaction_add_conflict_range;
 *select_api_version_impl = *Fdbc::select_api_version_impl;
 *get_max_api_version = *Fdbc::get_max_api_version;
+*get_client_version = *Fdbc::get_client_version;
 
 ############# Class : Fdb::FDBKeyValue ##############
 
@@ -322,11 +337,36 @@ sub FDB_API_VERSION () { $Fdbc::FDB_API_VERSION }
 sub FDB_NET_OPTION_LOCAL_ADDRESS () { $Fdbc::FDB_NET_OPTION_LOCAL_ADDRESS }
 sub FDB_NET_OPTION_CLUSTER_FILE () { $Fdbc::FDB_NET_OPTION_CLUSTER_FILE }
 sub FDB_NET_OPTION_TRACE_ENABLE () { $Fdbc::FDB_NET_OPTION_TRACE_ENABLE }
-sub FDB_CLUSTER_OPTION_DUMMY_DO_NOT_USE () { $Fdbc::FDB_CLUSTER_OPTION_DUMMY_DO_NOT_USE }
-sub FDB_DB_OPTION_DUMMY_DO_NOT_USE () { $Fdbc::FDB_DB_OPTION_DUMMY_DO_NOT_USE }
+sub FDB_NET_OPTION_TRACE_ROLL_SIZE () { $Fdbc::FDB_NET_OPTION_TRACE_ROLL_SIZE }
+sub FDB_NET_OPTION_TRACE_MAX_LOGS_SIZE () { $Fdbc::FDB_NET_OPTION_TRACE_MAX_LOGS_SIZE }
+sub FDB_NET_OPTION_TRACE_LOG_GROUP () { $Fdbc::FDB_NET_OPTION_TRACE_LOG_GROUP }
+sub FDB_NET_OPTION_KNOB () { $Fdbc::FDB_NET_OPTION_KNOB }
+sub FDB_NET_OPTION_TLS_PLUGIN () { $Fdbc::FDB_NET_OPTION_TLS_PLUGIN }
+sub FDB_NET_OPTION_TLS_CERT_BYTES () { $Fdbc::FDB_NET_OPTION_TLS_CERT_BYTES }
+sub FDB_NET_OPTION_TLS_CERT_PATH () { $Fdbc::FDB_NET_OPTION_TLS_CERT_PATH }
+sub FDB_NET_OPTION_TLS_KEY_BYTES () { $Fdbc::FDB_NET_OPTION_TLS_KEY_BYTES }
+sub FDB_NET_OPTION_TLS_KEY_PATH () { $Fdbc::FDB_NET_OPTION_TLS_KEY_PATH }
+sub FDB_NET_OPTION_TLS_VERIFY_PEERS () { $Fdbc::FDB_NET_OPTION_TLS_VERIFY_PEERS }
+sub FDB_NET_OPTION_BUGGIFY_ENABLE () { $Fdbc::FDB_NET_OPTION_BUGGIFY_ENABLE }
+sub FDB_NET_OPTION_BUGGIFY_DISABLE () { $Fdbc::FDB_NET_OPTION_BUGGIFY_DISABLE }
+sub FDB_NET_OPTION_BUGGIFY_SECTION_ACTIVATED_PROBABILITY () { $Fdbc::FDB_NET_OPTION_BUGGIFY_SECTION_ACTIVATED_PROBABILITY }
+sub FDB_NET_OPTION_BUGGIFY_SECTION_FIRED_PROBABILITY () { $Fdbc::FDB_NET_OPTION_BUGGIFY_SECTION_FIRED_PROBABILITY }
+sub FDB_NET_OPTION_DISABLE_MULTI_VERSION_CLIENT_API () { $Fdbc::FDB_NET_OPTION_DISABLE_MULTI_VERSION_CLIENT_API }
+sub FDB_NET_OPTION_CALLBACKS_ON_EXTERNAL_THREADS () { $Fdbc::FDB_NET_OPTION_CALLBACKS_ON_EXTERNAL_THREADS }
+sub FDB_NET_OPTION_EXTERNAL_CLIENT_LIBRARY () { $Fdbc::FDB_NET_OPTION_EXTERNAL_CLIENT_LIBRARY }
+sub FDB_NET_OPTION_EXTERNAL_CLIENT_DIRECTORY () { $Fdbc::FDB_NET_OPTION_EXTERNAL_CLIENT_DIRECTORY }
+sub FDB_NET_OPTION_DISABLE_LOCAL_CLIENT () { $Fdbc::FDB_NET_OPTION_DISABLE_LOCAL_CLIENT }
+sub FDB_NET_OPTION_DISABLE_CLIENT_STATISTICS_LOGGING () { $Fdbc::FDB_NET_OPTION_DISABLE_CLIENT_STATISTICS_LOGGING }
+sub FDB_NET_OPTION_ENABLE_SLOW_TASK_PROFILING () { $Fdbc::FDB_NET_OPTION_ENABLE_SLOW_TASK_PROFILING }
+sub FDB_DB_OPTION_LOCATION_CACHE_SIZE () { $Fdbc::FDB_DB_OPTION_LOCATION_CACHE_SIZE }
+sub FDB_DB_OPTION_MAX_WATCHES () { $Fdbc::FDB_DB_OPTION_MAX_WATCHES }
+sub FDB_DB_OPTION_MACHINE_ID () { $Fdbc::FDB_DB_OPTION_MACHINE_ID }
+sub FDB_DB_OPTION_DATACENTER_ID () { $Fdbc::FDB_DB_OPTION_DATACENTER_ID }
 sub FDB_TR_OPTION_CAUSAL_WRITE_RISKY () { $Fdbc::FDB_TR_OPTION_CAUSAL_WRITE_RISKY }
 sub FDB_TR_OPTION_CAUSAL_READ_RISKY () { $Fdbc::FDB_TR_OPTION_CAUSAL_READ_RISKY }
 sub FDB_TR_OPTION_CAUSAL_READ_DISABLE () { $Fdbc::FDB_TR_OPTION_CAUSAL_READ_DISABLE }
+sub FDB_TR_OPTION_NEXT_WRITE_NO_WRITE_CONFLICT_RANGE () { $Fdbc::FDB_TR_OPTION_NEXT_WRITE_NO_WRITE_CONFLICT_RANGE }
+sub FDB_TR_OPTION_COMMIT_ON_FIRST_PROXY () { $Fdbc::FDB_TR_OPTION_COMMIT_ON_FIRST_PROXY }
 sub FDB_TR_OPTION_CHECK_WRITES_ENABLE () { $Fdbc::FDB_TR_OPTION_CHECK_WRITES_ENABLE }
 sub FDB_TR_OPTION_READ_YOUR_WRITES_DISABLE () { $Fdbc::FDB_TR_OPTION_READ_YOUR_WRITES_DISABLE }
 sub FDB_TR_OPTION_READ_AHEAD_DISABLE () { $Fdbc::FDB_TR_OPTION_READ_AHEAD_DISABLE }
@@ -337,7 +377,18 @@ sub FDB_TR_OPTION_PRIORITY_SYSTEM_IMMEDIATE () { $Fdbc::FDB_TR_OPTION_PRIORITY_S
 sub FDB_TR_OPTION_PRIORITY_BATCH () { $Fdbc::FDB_TR_OPTION_PRIORITY_BATCH }
 sub FDB_TR_OPTION_INITIALIZE_NEW_DATABASE () { $Fdbc::FDB_TR_OPTION_INITIALIZE_NEW_DATABASE }
 sub FDB_TR_OPTION_ACCESS_SYSTEM_KEYS () { $Fdbc::FDB_TR_OPTION_ACCESS_SYSTEM_KEYS }
+sub FDB_TR_OPTION_READ_SYSTEM_KEYS () { $Fdbc::FDB_TR_OPTION_READ_SYSTEM_KEYS }
 sub FDB_TR_OPTION_DEBUG_DUMP () { $Fdbc::FDB_TR_OPTION_DEBUG_DUMP }
+sub FDB_TR_OPTION_DEBUG_RETRY_LOGGING () { $Fdbc::FDB_TR_OPTION_DEBUG_RETRY_LOGGING }
+sub FDB_TR_OPTION_TRANSACTION_LOGGING_ENABLE () { $Fdbc::FDB_TR_OPTION_TRANSACTION_LOGGING_ENABLE }
+sub FDB_TR_OPTION_TIMEOUT () { $Fdbc::FDB_TR_OPTION_TIMEOUT }
+sub FDB_TR_OPTION_RETRY_LIMIT () { $Fdbc::FDB_TR_OPTION_RETRY_LIMIT }
+sub FDB_TR_OPTION_MAX_RETRY_DELAY () { $Fdbc::FDB_TR_OPTION_MAX_RETRY_DELAY }
+sub FDB_TR_OPTION_SNAPSHOT_RYW_ENABLE () { $Fdbc::FDB_TR_OPTION_SNAPSHOT_RYW_ENABLE }
+sub FDB_TR_OPTION_SNAPSHOT_RYW_DISABLE () { $Fdbc::FDB_TR_OPTION_SNAPSHOT_RYW_DISABLE }
+sub FDB_TR_OPTION_LOCK_AWARE () { $Fdbc::FDB_TR_OPTION_LOCK_AWARE }
+sub FDB_TR_OPTION_USED_DURING_COMMIT_PROTECTION_DISABLE () { $Fdbc::FDB_TR_OPTION_USED_DURING_COMMIT_PROTECTION_DISABLE }
+sub FDB_TR_OPTION_READ_LOCK_AWARE () { $Fdbc::FDB_TR_OPTION_READ_LOCK_AWARE }
 sub FDB_STREAMING_MODE_WANT_ALL () { $Fdbc::FDB_STREAMING_MODE_WANT_ALL }
 sub FDB_STREAMING_MODE_ITERATOR () { $Fdbc::FDB_STREAMING_MODE_ITERATOR }
 sub FDB_STREAMING_MODE_EXACT () { $Fdbc::FDB_STREAMING_MODE_EXACT }
@@ -345,6 +396,27 @@ sub FDB_STREAMING_MODE_SMALL () { $Fdbc::FDB_STREAMING_MODE_SMALL }
 sub FDB_STREAMING_MODE_MEDIUM () { $Fdbc::FDB_STREAMING_MODE_MEDIUM }
 sub FDB_STREAMING_MODE_LARGE () { $Fdbc::FDB_STREAMING_MODE_LARGE }
 sub FDB_STREAMING_MODE_SERIAL () { $Fdbc::FDB_STREAMING_MODE_SERIAL }
+sub FDB_MUTATION_TYPE_ADD () { $Fdbc::FDB_MUTATION_TYPE_ADD }
+sub FDB_MUTATION_TYPE_AND () { $Fdbc::FDB_MUTATION_TYPE_AND }
+sub FDB_MUTATION_TYPE_BIT_AND () { $Fdbc::FDB_MUTATION_TYPE_BIT_AND }
+sub FDB_MUTATION_TYPE_OR () { $Fdbc::FDB_MUTATION_TYPE_OR }
+sub FDB_MUTATION_TYPE_BIT_OR () { $Fdbc::FDB_MUTATION_TYPE_BIT_OR }
+sub FDB_MUTATION_TYPE_XOR () { $Fdbc::FDB_MUTATION_TYPE_XOR }
+sub FDB_MUTATION_TYPE_BIT_XOR () { $Fdbc::FDB_MUTATION_TYPE_BIT_XOR }
+sub FDB_MUTATION_TYPE_MAX () { $Fdbc::FDB_MUTATION_TYPE_MAX }
+sub FDB_MUTATION_TYPE_MIN () { $Fdbc::FDB_MUTATION_TYPE_MIN }
+sub FDB_MUTATION_TYPE_SET_VERSIONSTAMPED_KEY () { $Fdbc::FDB_MUTATION_TYPE_SET_VERSIONSTAMPED_KEY }
+sub FDB_MUTATION_TYPE_SET_VERSIONSTAMPED_VALUE () { $Fdbc::FDB_MUTATION_TYPE_SET_VERSIONSTAMPED_VALUE }
+sub FDB_MUTATION_TYPE_BYTE_MIN () { $Fdbc::FDB_MUTATION_TYPE_BYTE_MIN }
+sub FDB_MUTATION_TYPE_BYTE_MAX () { $Fdbc::FDB_MUTATION_TYPE_BYTE_MAX }
+sub FDB_CONFLICT_RANGE_TYPE_READ () { $Fdbc::FDB_CONFLICT_RANGE_TYPE_READ }
+sub FDB_CONFLICT_RANGE_TYPE_WRITE () { $Fdbc::FDB_CONFLICT_RANGE_TYPE_WRITE }
+sub FDB_ERROR_PREDICATE_RETRYABLE () { $Fdbc::FDB_ERROR_PREDICATE_RETRYABLE }
+sub FDB_ERROR_PREDICATE_MAYBE_COMMITTED () { $Fdbc::FDB_ERROR_PREDICATE_MAYBE_COMMITTED }
+sub FDB_ERROR_PREDICATE_RETRYABLE_NOT_COMMITTED () { $Fdbc::FDB_ERROR_PREDICATE_RETRYABLE_NOT_COMMITTED }
 
+# ------- VARIABLE STUBS --------
+
+package Fdb;
 
 1;

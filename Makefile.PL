@@ -14,15 +14,13 @@ WriteMakefile(
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => 0,
     },
-    DEFINE           => '-DFDB_API_VERSION=21',
+    DEFINE           => '-DFDB_API_VERSION=510',
     LIBS             => ['-lfdb_c'],
     BUILD_REQUIRES => {
         'Test::More' => 0,
     },
     PREREQ_PM => {
         'threads'    => 0.1,
-        #'ABC'              => 1.6,
-        #'Foo::Bar::Module' => 5.0401,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Fdb-*' },

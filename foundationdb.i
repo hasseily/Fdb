@@ -1,6 +1,6 @@
 /*
  * Warning: This file is to generate the base C wrapper and Perl module
- * using Swig 2.0.x with the command: `swig -perl -const foundationdb.i`
+ * using Swig 3.0.x with the command: `swig -perl -const foundationdb.i`
  *
  * Should you wish to modify it (assuming you know what you're doing),
  * you *MUST* manually merge the changes from the C and Perl output files
@@ -15,13 +15,14 @@
 
 %module Fdb
 %{
-#define FDB_API_VERSION 21
+#define FDB_API_VERSION 510
 #include <foundationdb/fdb_c.h>
 %}
 
 %include typemaps.i
 
 %rename("%(regex:/fdb_(.*)/\\1/)s") ""; // fdb_some_func -> some_func
+%rename("$ignore", regextarget=1) "DO_NOT_USE$"; // don't use what is tagged DO_NOT_USE
 
 // Try to get rid of as many inputs of the form (key, key_length)
 // Perl doesn't need to known anything about length!
@@ -163,7 +164,7 @@
   argvi++;
 }
 
-#define FDB_API_VERSION 21
+#define FDB_API_VERSION 510
 %include </usr/local/include/foundationdb/fdb_c_options.g.h>
 %include </usr/local/include/foundationdb/fdb_c.h>
 

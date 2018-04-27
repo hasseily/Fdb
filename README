@@ -19,8 +19,8 @@ the method.
         my $cluster_f = Fdb::create_cluster(undef);
         Fdb::future_block_until_ready($cluster_f);
         my $err;
-        if (Fdb::future_is_error($cluster_f)) {
-          Fdb::future_get_error($cluster_f, $err);
+        my $err = Fdb::future_get_error($cluster_f);
+        if ($err != 0) {
           warn $err;
         }
         my $res;
@@ -80,7 +80,7 @@ You can also look for information at:
 
 LICENSE AND COPYRIGHT
 
-Copyright (C) 2013 Henri Asseily
+Copyright (C) 2013-2018 Henri Asseily
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a
